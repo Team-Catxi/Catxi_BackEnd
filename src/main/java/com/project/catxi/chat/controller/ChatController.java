@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.catxi.chat.dto.ChatMessageRes;
+import com.project.catxi.chat.dto.ChatRoomInfoRes;
 import com.project.catxi.chat.dto.RoomCreateReq;
 import com.project.catxi.chat.dto.RoomCreateRes;
 import com.project.catxi.chat.service.ChatMessageService;
@@ -40,18 +41,18 @@ public class ChatController {
 	}
 
 	@GetMapping("/{roomId}/messages")
-	public ResponseEntity<ApiResponse<List<ChatMessageRes>>> getHistory(@PathVariable Long roomId, @RequestParam("memberId") Long memberId){
+	public ResponseEntity<ApiResponse<List<ChatMessageRes>>> getHistory(@PathVariable Long roomId,
+		@RequestParam("memberId") Long memberId) {
 		List<ChatMessageRes> history =
 			chatMessageService.getChatHistory(roomId, memberId);
 
-		return  ResponseEntity.ok(ApiResponse.success(history));
+		return ResponseEntity.ok(ApiResponse.success(history));
 	}
-
 
 	@DeleteMapping("/{roomId}/leave")
 	public ResponseEntity<ApiResponse<Void>> leaveRoom(
 		@PathVariable Long roomId,
-		@RequestParam  Long memberId) {      // 임시 – 로그인 완성 후 제거
+		@RequestParam Long memberId) {      // 임시 – 로그인 완성 후 제거
 
 		chatRoomService.leaveChatRoom(roomId, memberId);
 		return ResponseEntity.ok(ApiResponse.successWithNoData());
@@ -66,5 +67,9 @@ public class ChatController {
 		return ResponseEntity.ok(ApiResponse.successWithNoData());
 	}
 
-
+	@GetMapping("/rooms/{roomId}/info")
+	public ResponseEntity<ApiResponse<ChatRoomInfoRes>> getRoomInfo(@PathVariable Long roomId){
+		ChatRoomInfoRes chatRoomInfoRes = chatRoomService.getRoomInfo(roomId);
+		return ResponseEntity.ok(ApiResponse.success(chatRoomInfoRes));
+	}
 }
