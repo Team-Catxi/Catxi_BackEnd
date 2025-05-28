@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.catxi.chat.domain.ChatParticipant;
 import com.project.catxi.chat.domain.ChatRoom;
+import com.project.catxi.chat.dto.ChatRoomInfoRes;
 import com.project.catxi.chat.dto.RoomCreateReq;
 import com.project.catxi.chat.dto.RoomCreateRes;
 import com.project.catxi.chat.repository.ChatParticipantRepository;
@@ -112,6 +113,19 @@ public class ChatRoomService {
 
 		chatParticipantRepository.save(chatParticipant);
 	}
+
+	public ChatRoomInfoRes getRoomInfo(Long roomId) {
+		ChatRoom chatroom = chatRoomRepository.findById(roomId)
+			.orElseThrow(() -> new CatxiException(ChatRoomErrorCode.CHATROOM_NOT_FOUND));
+		long current = chatParticipantRepository.countByChatRoomAndActiveTrue(chatroom);
+
+		return ChatRoomInfoRes.from(chatroom, current);
+	}
+
+
+
+
+
 
 	private void HostNotInOtherRoom(Member host) {
 		boolean exists = chatParticipantRepository.existsByMemberAndActiveTrue(host);
