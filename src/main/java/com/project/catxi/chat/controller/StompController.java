@@ -16,7 +16,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.catxi.chat.dto.ChatMessageSendReq;
 import com.project.catxi.chat.service.ChatMessageService;
 import com.project.catxi.chat.service.RedisPubSubService;
-
+import com.project.catxi.map.dto.CoordinateReq;
+import com.project.catxi.map.dto.CoordinateRes;
+import com.project.catxi.map.service.MapService;
 
 @Controller
 public class StompController {
@@ -24,12 +26,14 @@ public class StompController {
 	private final SimpMessageSendingOperations messageTemplate;
 	private final ChatMessageService chatMessageService;
 	private final RedisPubSubService pubSubService;
+	private final MapService mapService;
 
 	public StompController(SimpMessageSendingOperations messageTemplate, ChatMessageService chatMessageService,
-		RedisPubSubService pubSubService) {
+		RedisPubSubService pubSubService, MapService mapService) {
 		this.messageTemplate = messageTemplate;
 		this.chatMessageService = chatMessageService;
 		this.pubSubService = pubSubService;
+		this.mapService = mapService;
 	}
 
 
@@ -51,5 +55,21 @@ public class StompController {
 		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		String message = objectMapper.writeValueAsString(enriched);
 		pubSubService.publish("chat", message);
+	}
+
+	@MessageMapping("/map/{roomId}")
+	public void sendCoordinate(@DestinationVariable Long roomId, CoordinateReq coordinateReq) throws JsonProcessingException {
+		double distance = mapService.handleSaveCoordinateAndDistance(coordinateReq);
+
+		CoordinateRes enriched = new CoordinateRes(
+			coordinateReq.roomId(),
+			coordinateReq.email(),
+			coordinateReq.latitude(),
+			coordinateReq.longitude(),
+			distance
+		);
+		ObjectMapper objectMapper = new ObjectMapper();
+		String message = objectMapper.writeValueAsString(enriched);
+		pubSubService.publish("map", message);
 	}
 }
